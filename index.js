@@ -50,6 +50,39 @@ async function run() {
       }
     });
 
+    // get own task from collection
+    app.get("/tasks/:email", async (req, res) => {
+      try {
+        const userEmail = req.params.email;
+
+        const toDo = await tasksCollection
+          .find({
+            added_by_email: userEmail,
+            status: "to-do",
+          })
+          .toArray();
+
+        const onGoing = await tasksCollection
+          .find({
+            added_by_email: userEmail,
+            status: "ongoing",
+          })
+          .toArray();
+
+        const completed = await tasksCollection
+          .find({
+            added_by_email: userEmail,
+            status: "completed",
+          })
+          .toArray();
+
+        res.status(200).send({ toDo, onGoing, completed });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).send({ error: true, message: error.message });
+      }
+    });
+
     // add task to collection
     app.post("/tasks", async (req, res) => {
       try {
@@ -66,6 +99,20 @@ async function run() {
         // Create a new task
         const result = await tasksCollection.insertOne(task);
         res.status(201).send(result);
+      } catch (error) {
+        console.log(error);
+        return res.send({ error: true, message: error.message });
+      }
+    });
+
+    // update task status by DnD
+    app.patch("/tasks/:id", async (req, res) => {
+      try {
+        const query = { _id: new ObjectId(req.params.id) };
+        const result = await tasksCollection.updateOne(query, {
+          $set: req.body,
+        });
+        res.send(result);
       } catch (error) {
         console.log(error);
         return res.send({ error: true, message: error.message });
