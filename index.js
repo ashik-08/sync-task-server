@@ -119,6 +119,18 @@ async function run() {
       }
     });
 
+    // delete a task
+    app.delete("/tasks/:id", async (req, res) => {
+      try {
+        const query = { _id: new ObjectId(req.params.id) };
+        const result = await tasksCollection.deleteOne(query);
+        res.status(203).send(result);
+      } catch (error) {
+        console.log(error);
+        return res.send({ error: true, message: error.message });
+      }
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
