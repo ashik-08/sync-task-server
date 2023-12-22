@@ -50,6 +50,18 @@ async function run() {
       }
     });
 
+    // get single task using id
+    app.get("/task/:id", async (req, res) => {
+      try {
+        const query = { _id: new ObjectId(req.params.id) };
+        const result = await tasksCollection.findOne(query);
+        res.status(200).send(result);
+      } catch (error) {
+        console.log(error);
+        return res.send({ error: true, message: error.message });
+      }
+    });
+
     // get own task from collection
     app.get("/tasks/:email", async (req, res) => {
       try {
@@ -107,6 +119,20 @@ async function run() {
 
     // update task status by DnD
     app.patch("/tasks/:id", async (req, res) => {
+      try {
+        const query = { _id: new ObjectId(req.params.id) };
+        const result = await tasksCollection.updateOne(query, {
+          $set: req.body,
+        });
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+        return res.send({ error: true, message: error.message });
+      }
+    });
+
+    // update task details
+    app.patch("/task/:id", async (req, res) => {
       try {
         const query = { _id: new ObjectId(req.params.id) };
         const result = await tasksCollection.updateOne(query, {
