@@ -26,6 +26,7 @@ async function run() {
     // connect to the database & access it's collections
     const database = client.db("sync-task");
     const usersCollection = database.collection("users");
+    const tasksCollection = database.collection("tasks");
 
     // user related API (usersCollection)
     // add new user credentials to the db
@@ -42,7 +43,29 @@ async function run() {
           return res.send({ message: "Already exists" });
         }
         const result = await usersCollection.insertOne(user);
-        res.send(result);
+        res.status(201).send(result);
+      } catch (error) {
+        console.log(error);
+        return res.send({ error: true, message: error.message });
+      }
+    });
+
+    // add task to collection
+    app.post("/tasks", async (req, res) => {
+      try {
+        const task = req.body;
+        // query to find if a task with the same attributes already exists
+        const existingTask = await tasksCollection.findOne({
+          task_title: task.task_title,
+          description: task.description,
+          added_by_email: task.added_by_email,
+        });
+        if (existingTask) {
+          return res.send({ message: "Already exists" });
+        }
+        // Create a new task
+        const result = await tasksCollection.insertOne(task);
+        res.status(201).send(result);
       } catch (error) {
         console.log(error);
         return res.send({ error: true, message: error.message });
